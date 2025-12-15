@@ -7,8 +7,9 @@ router.get('/health', (req, res) => {
 });
 
 // 라우트 등록
+router.use('/auth', require('./authRoutes'));
 router.use('/users', require('./userRoutes'));
-// router.use('/products', require('./productRoutes'));
+router.use('/products', require('./productRoutes'));
 // router.use('/orders', require('./orderRoutes'));
 
 module.exports = router;

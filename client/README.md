@@ -66,3 +66,6 @@ client/
 | `npm run preview` | 빌드 미리보기 |
 | `npm run lint` | ESLint 실행 |
 
+
+
+
