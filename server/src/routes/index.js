@@ -10,6 +10,7 @@ router.get('/health', (req, res) => {
 router.use('/auth', require('./authRoutes'));
 router.use('/users', require('./userRoutes'));
 router.use('/products', require('./productRoutes'));
+router.use('/cart', require('./cartRoutes'));
 // router.use('/orders', require('./orderRoutes'));
 
 module.exports = router;

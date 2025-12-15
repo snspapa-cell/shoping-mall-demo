@@ -197,12 +197,18 @@
 }
 
 .product-card {
-  cursor: pointer;
+  position: relative;
   transition: transform 0.2s;
 }
 
 .product-card:hover {
   transform: translateY(-4px);
+}
+
+.product-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
 }
 
 .product-card:hover .product-actions {
@@ -253,12 +259,14 @@
 
 .product-actions {
   position: absolute;
-  bottom: 0.75rem;
+  top: 0.75rem;
   right: 0.75rem;
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
   opacity: 0;
   transition: opacity 0.2s;
+  z-index: 10;
 }
 
 .action-btn {

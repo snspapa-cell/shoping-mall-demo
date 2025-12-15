@@ -1,6 +1,7 @@
 import { memo, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
+import { useCart } from '../hooks/useCart.jsx'
 import { SearchIcon, BagIcon } from './icons/Icons'
 import './Navbar.css'
 
@@ -11,8 +12,12 @@ const CATEGORIES = [
 
 function Navbar({ topBannerText = "성찬 쇼핑몰에서 고민하지마세요! 사이즈 무료 교환" }) {
   const { user, isAuthenticated, logout } = useAuth()
+  const { cart } = useCart()
 
   const handleLogout = useCallback(() => logout(), [logout])
+
+  // 장바구니 아이템 개수
+  const cartItemCount = cart?.totalItems || 0
 
   return (
     <>
@@ -29,14 +34,20 @@ function Navbar({ topBannerText = "성찬 쇼핑몰에서 고민하지마세요!
           <ul className="nav-menu">
             {CATEGORIES.map((cat, index) => (
               <li key={index}>
-                <Link to={`/category/${cat}`} className="nav-link">{cat}</Link>
+                <Link to={`/category/${encodeURIComponent(cat)}`} className="nav-link">{cat}</Link>
               </li>
             ))}
           </ul>
 
           <div className="nav-icons">
             <button className="icon-btn" aria-label="검색"><SearchIcon /></button>
-            <button className="icon-btn" aria-label="장바구니"><BagIcon /></button>
+            
+            <Link to="/cart" className="icon-btn cart-icon" aria-label="장바구니">
+              <BagIcon />
+              {cartItemCount > 0 && (
+                <span className="cart-badge">{cartItemCount > 99 ? '99+' : cartItemCount}</span>
+              )}
+            </Link>
             
             {isAuthenticated ? (
               <div className="user-menu">
@@ -58,4 +69,3 @@ function Navbar({ topBannerText = "성찬 쇼핑몰에서 고민하지마세요!
 }
 
 export default memo(Navbar)
-
