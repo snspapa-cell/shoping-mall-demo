@@ -67,10 +67,8 @@ const productSchema = new mongoose.Schema(
   }
 );
 
-// SKU 중복 검사를 위한 인덱스
-productSchema.index({ sku: 1 }, { unique: true });
-
 // 카테고리별 검색을 위한 인덱스
+// 참고: sku 인덱스는 스키마의 unique: true 설정으로 자동 생성됨
 productSchema.index({ category: 1 });
 
 // 가격 정렬을 위한 인덱스

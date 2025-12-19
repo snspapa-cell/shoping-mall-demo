@@ -1,8 +1,13 @@
 import axios from 'axios';
 
+// API 기본 URL 설정
+// 개발환경: Vite 프록시 사용 (/api)
+// 배포환경: 환경변수에서 서버 URL 가져오기
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+
 // Axios 인스턴스 생성
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },

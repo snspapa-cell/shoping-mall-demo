@@ -239,8 +239,8 @@ const orderSchema = new mongoose.Schema(
 );
 
 // 인덱스 설정
+// 참고: orderNumber 인덱스는 스키마의 unique: true 설정으로 자동 생성됨
 orderSchema.index({ user: 1, createdAt: -1 });
-orderSchema.index({ orderNumber: 1 });
 orderSchema.index({ status: 1 });
 orderSchema.index({ 'payment.status': 1 });
 orderSchema.index({ createdAt: -1 });

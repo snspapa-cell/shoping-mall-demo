@@ -42,8 +42,7 @@ const cartSchema = new mongoose.Schema(
   }
 );
 
-// 사용자별 장바구니 검색을 위한 인덱스
-cartSchema.index({ user: 1 });
+// 참고: user 인덱스는 스키마의 unique: true 설정으로 자동 생성됨
 
 // 총 상품 개수 계산 가상 필드
 cartSchema.virtual('totalItems').get(function () {
