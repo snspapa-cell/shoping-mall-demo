@@ -55,7 +55,12 @@ function Register() {
     setLoading(true)
 
     try {
-      const { passwordConfirm, ...submitData } = formData
+      const { passwordConfirm, username, ...rest } = formData
+      const submitData = {
+        ...rest,
+        name: username, // 서버는 'name' 필드를 기대함
+        agreeMarketing,
+      }
       const response = await axios.post('/api/auth/register', submitData)
       
       if (response.data.success) {
