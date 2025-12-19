@@ -1,13 +1,9 @@
 import axios from 'axios';
 
 // API 기본 URL 설정
-// 개발환경: Vite 프록시 사용 (/api)
-// 배포환경: 환경변수에서 서버 URL 가져오기
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
-
-// 디버깅: 환경변수 확인 (배포 후 콘솔에서 확인)
-console.log('[API Config] VITE_API_URL:', import.meta.env.VITE_API_URL);
-console.log('[API Config] Using API_BASE_URL:', API_BASE_URL);
+// Vercel: vercel.json에서 /api/* 요청을 Heroku로 프록시
+// 개발환경: vite.config.js에서 프록시 설정
+const API_BASE_URL = '/api';
 
 // Axios 인스턴스 생성
 const api = axios.create({
