@@ -1,0 +1,20 @@
+{
+  "name": "shoping-mall-demo",
+  "version": "1.0.0",
+  "description": "Shopping Mall - Full Stack Application",
+  "scripts": {
+    "start": "cd server && npm start",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "install-server": "cd server && npm install",
+    "install-client": "cd client && npm install",
+    "heroku-postbuild": "cd server && npm install"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
+
