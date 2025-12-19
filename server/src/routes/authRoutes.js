@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { login, getMe, changePassword } = require('../controllers/authController');
+const { register, login, getMe, changePassword } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
+
+// POST   /api/auth/register - 회원가입
+router.post('/register', register);
 
 // POST   /api/auth/login - 로그인
 router.post('/login', login);

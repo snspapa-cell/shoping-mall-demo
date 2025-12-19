@@ -9,6 +9,84 @@ const generateToken = (userId) => {
   });
 };
 
+// @desc    회원가입
+// @route   POST /api/auth/register
+const register = async (req, res) => {
+  try {
+    const { name, email, password, agreeMarketing } = req.body;
+
+    // 필수 필드 확인
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: '이름, 이메일, 비밀번호를 모두 입력해주세요.',
+      });
+    }
+
+    // 이메일 형식 확인
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: '올바른 이메일 형식이 아닙니다.',
+      });
+    }
+
+    // 비밀번호 길이 확인
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: '비밀번호는 최소 6자 이상이어야 합니다.',
+      });
+    }
+
+    // 이메일 중복 확인
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: '이미 사용 중인 이메일입니다.',
+      });
+    }
+
+    // 비밀번호 해싱
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // 유저 생성
+    const user = await User.create({
+      name,
+      email: email.toLowerCase(),
+      password: hashedPassword,
+      role: 'customer', // 일반 회원으로 가입
+      agreeMarketing: agreeMarketing || false,
+    });
+
+    // JWT 토큰 생성
+    const token = generateToken(user._id);
+
+    // 비밀번호 제외하고 유저 정보 반환
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    res.status(201).json({
+      success: true,
+      message: '회원가입이 완료되었습니다.',
+      data: {
+        user: userResponse,
+        token,
+      },
+    });
+  } catch (error) {
+    console.error('회원가입 에러:', error);
+    res.status(500).json({
+      success: false,
+      message: '회원가입 처리 중 오류가 발생했습니다.',
+      error: error.message,
+    });
+  }
+};
+
 // @desc    유저 로그인
 // @route   POST /api/auth/login
 const login = async (req, res) => {
@@ -156,6 +234,7 @@ const changePassword = async (req, res) => {
 };
 
 module.exports = {
+  register,
   login,
   getMe,
   changePassword,

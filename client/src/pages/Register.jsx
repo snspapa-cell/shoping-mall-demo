@@ -56,7 +56,7 @@ function Register() {
 
     try {
       const { passwordConfirm, ...submitData } = formData
-      const response = await axios.post('/api/users', submitData)
+      const response = await axios.post('/api/auth/register', submitData)
       
       if (response.data.success) {
         alert('회원가입이 완료되었습니다!')
