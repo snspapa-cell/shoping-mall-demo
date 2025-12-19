@@ -1,0 +1,132 @@
+/* Product Section V2 - 이미지 참고 디자인 */
+.product-section-v2 {
+  max-width: 1200px;
+  margin: 60px auto;
+  padding: 0 20px;
+}
+
+/* 섹션 헤더 */
+.section-header-v2 {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.section-subtitle-v2 {
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
+}
+
+.section-title-v2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #222;
+  letter-spacing: 0.03em;
+}
+
+/* 상품 그리드 */
+.product-grid-v2 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+/* MORE 버튼 */
+.more-btn-v2 {
+  display: block;
+  width: fit-content;
+  margin: 40px auto 0;
+  padding: 14px 48px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #333;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.more-btn-v2:hover {
+  background: #f9f9f9;
+  border-color: #bbb;
+  color: #111;
+}
+
+/* 세일 섹션 특별 스타일 */
+.sale-section .section-title-v2 {
+  color: #e74c3c;
+}
+
+/* WEEKLY BEST 섹션 특별 스타일 */
+.weekly-section .section-title-v2 {
+  font-size: 1.6rem;
+  letter-spacing: 0.1em;
+}
+
+/* NEW ITEM 섹션 특별 스타일 */
+.new-section .section-subtitle-v2 {
+  color: #3498db;
+}
+
+/* 반응형 */
+@media (max-width: 1024px) {
+  .product-grid-v2 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .product-section-v2 {
+    margin: 40px auto;
+    padding: 0 16px;
+  }
+  
+  .section-header-v2 {
+    margin-bottom: 24px;
+  }
+  
+  .section-title-v2 {
+    font-size: 1.25rem;
+  }
+  
+  .section-subtitle-v2 {
+    font-size: 0.8rem;
+  }
+  
+  .product-grid-v2 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  
+  .more-btn-v2 {
+    margin-top: 30px;
+    padding: 12px 40px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-section-v2 {
+    margin: 32px auto;
+    padding: 0 12px;
+  }
+  
+  .section-title-v2 {
+    font-size: 1.1rem;
+  }
+  
+  .product-grid-v2 {
+    gap: 12px;
+  }
+  
+  .more-btn-v2 {
+    padding: 10px 32px;
+  }
+}
+
+
+

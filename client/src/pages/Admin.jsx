@@ -5,6 +5,11 @@ import { HomeIcon, LogoutIcon } from '../components/icons/AdminIcons'
 import { MENU_ITEMS, PAGE_TITLES } from '../constants/adminData'
 import DashboardContent from '../components/admin/DashboardContent'
 import ProductsContent from '../components/admin/ProductsContent'
+import BannersContent from '../components/admin/BannersContent'
+import LookbooksContent from '../components/admin/LookbooksContent'
+import OrdersContent from '../components/admin/OrdersContent'
+import UsersContent from '../components/admin/UsersContent'
+import SettingsContent from '../components/admin/SettingsContent'
 import './Admin.css'
 
 // 사이드바 컴포넌트
@@ -66,6 +71,7 @@ function Admin() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [activeMenu, setActiveMenu] = useState('dashboard')
+  const [orderStatusFilter, setOrderStatusFilter] = useState('')
 
   const handleLogout = useCallback(() => {
     logout()
@@ -74,25 +80,51 @@ function Admin() {
 
   const handleMenuChange = useCallback((menuId) => {
     setActiveMenu(menuId)
+    // 메뉴 변경 시 필터 초기화
+    if (menuId !== 'orders') {
+      setOrderStatusFilter('')
+    }
   }, [])
 
   const handleNavigateToProducts = useCallback(() => {
     setActiveMenu('products')
   }, [])
 
+  const handleNavigateToOrders = useCallback((statusFilter = '') => {
+    setOrderStatusFilter(statusFilter)
+    setActiveMenu('orders')
+  }, [])
+
+  const handleNavigateToUsers = useCallback(() => {
+    setActiveMenu('users')
+  }, [])
+
+  const handleNavigateToSettings = useCallback(() => {
+    setActiveMenu('settings')
+  }, [])
+
   // 콘텐츠 렌더링
   const renderContent = () => {
     switch (activeMenu) {
+      case 'banners':
+        return <BannersContent />
+      case 'lookbooks':
+        return <LookbooksContent />
       case 'products':
         return <ProductsContent />
       case 'orders':
-        return <div className="coming-soon">주문 관리 기능 준비 중...</div>
+        return <OrdersContent initialStatusFilter={orderStatusFilter} />
       case 'users':
-        return <div className="coming-soon">회원 관리 기능 준비 중...</div>
+        return <UsersContent />
       case 'settings':
-        return <div className="coming-soon">설정 기능 준비 중...</div>
+        return <SettingsContent />
       default:
-        return <DashboardContent onNavigateToProducts={handleNavigateToProducts} />
+        return <DashboardContent 
+          onNavigateToProducts={handleNavigateToProducts} 
+          onNavigateToOrders={handleNavigateToOrders} 
+          onNavigateToUsers={handleNavigateToUsers}
+          onNavigateToSettings={handleNavigateToSettings}
+        />
     }
   }
 

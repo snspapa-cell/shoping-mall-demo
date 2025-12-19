@@ -1,10 +1,20 @@
-import { useState, useEffect, useCallback, memo } from 'react'
+import { useState, useEffect, useCallback, memo, useMemo } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import { useCart } from '../hooks/useCart'
 import { useAuth } from '../hooks/useAuth'
 import api from '../utils/axios'
 import './ProductDetail.css'
+
+// 날짜 포맷 함수
+const formatDate = (dateString) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
 
 // 가격 포맷 함수
 const formatPrice = (price) => {
@@ -144,6 +154,406 @@ const ShareIcon = () => (
   </svg>
 )
 
+// 별점 표시 컴포넌트
+const StarRating = memo(({ rating, size = 16, interactive = false, onRatingChange }) => {
+  const [hoverRating, setHoverRating] = useState(0)
+
+  const handleClick = (star) => {
+    if (interactive && onRatingChange) {
+      onRatingChange(star)
+    }
+  }
+
+  return (
+    <div className="star-rating" style={{ fontSize: size }}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <span
+          key={star}
+          className={`star ${star <= (hoverRating || rating) ? 'filled' : ''} ${interactive ? 'interactive' : ''}`}
+          onClick={() => handleClick(star)}
+          onMouseEnter={() => interactive && setHoverRating(star)}
+          onMouseLeave={() => interactive && setHoverRating(0)}
+        >
+          ★
+        </span>
+      ))}
+    </div>
+  )
+})
+
+// 리뷰 아이템 컴포넌트
+const ReviewItem = memo(({ review, currentUserId, onHelpful, onDelete }) => {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const isLongContent = review.content.length > 200
+  const displayContent = isLongContent && !isExpanded 
+    ? review.content.slice(0, 200) + '...' 
+    : review.content
+  
+  const isHelpful = review.helpfulUsers?.includes(currentUserId)
+  const isOwner = review.user?._id === currentUserId
+
+  return (
+    <div className="review-item">
+      <div className="review-header">
+        <div className="review-user-info">
+          <StarRating rating={review.rating} size={14} />
+          <span className="review-author">
+            {review.user?.name ? review.user.name.slice(0, 1) + '***' : '익명'}
+          </span>
+          {review.isVerifiedPurchase && (
+            <span className="verified-badge">구매인증</span>
+          )}
+        </div>
+        <span className="review-date">{formatDate(review.createdAt)}</span>
+      </div>
+
+      {review.title && <h4 className="review-title">{review.title}</h4>}
+      
+      <p className="review-content">{displayContent}</p>
+      
+      {isLongContent && (
+        <button 
+          className="btn-expand"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          {isExpanded ? '접기' : '더보기'}
+        </button>
+      )}
+
+      {review.images && review.images.length > 0 && (
+        <div className="review-images">
+          {review.images.map((img, index) => (
+            <img key={index} src={img} alt={`리뷰 이미지 ${index + 1}`} />
+          ))}
+        </div>
+      )}
+
+      {review.adminReply?.content && (
+        <div className="admin-reply">
+          <div className="reply-header">
+            <span className="reply-badge">판매자 답변</span>
+            <span className="reply-date">{formatDate(review.adminReply.repliedAt)}</span>
+          </div>
+          <p className="reply-content">{review.adminReply.content}</p>
+        </div>
+      )}
+
+      <div className="review-actions">
+        <button 
+          className={`btn-helpful ${isHelpful ? 'active' : ''}`}
+          onClick={() => onHelpful(review._id)}
+          disabled={isOwner}
+        >
+          👍 도움이 됐어요 ({review.helpfulCount || 0})
+        </button>
+        {isOwner && (
+          <button 
+            className="btn-delete-review"
+            onClick={() => onDelete(review._id)}
+          >
+            삭제
+          </button>
+        )}
+      </div>
+    </div>
+  )
+})
+
+// 리뷰 작성 폼 컴포넌트
+const ReviewForm = memo(({ productId, orderId, onSubmit, onCancel }) => {
+  const [rating, setRating] = useState(5)
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (content.length < 10) {
+      alert('리뷰는 최소 10자 이상 작성해주세요.')
+      return
+    }
+    setIsSubmitting(true)
+    try {
+      await onSubmit({ productId, orderId, rating, title, content })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <form className="review-form" onSubmit={handleSubmit}>
+      <div className="form-group">
+        <label>별점</label>
+        <StarRating rating={rating} size={24} interactive onRatingChange={setRating} />
+      </div>
+      <div className="form-group">
+        <label>제목 (선택)</label>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="리뷰 제목을 입력하세요"
+          maxLength={100}
+        />
+      </div>
+      <div className="form-group">
+        <label>내용 *</label>
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="상품에 대한 솔직한 리뷰를 작성해주세요 (최소 10자)"
+          rows={5}
+          maxLength={1000}
+          required
+        />
+        <span className="char-count">{content.length} / 1000</span>
+      </div>
+      <div className="form-actions">
+        <button type="button" className="btn-cancel" onClick={onCancel}>
+          취소
+        </button>
+        <button type="submit" className="btn-submit" disabled={isSubmitting}>
+          {isSubmitting ? '등록 중...' : '리뷰 등록'}
+        </button>
+      </div>
+    </form>
+  )
+})
+
+// 리뷰 섹션 컴포넌트
+const ReviewSection = memo(({ productId }) => {
+  const { isAuthenticated, user } = useAuth()
+  const [reviews, setReviews] = useState([])
+  const [stats, setStats] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(false)
+  const [sort, setSort] = useState('newest')
+  const [showWriteForm, setShowWriteForm] = useState(false)
+  const [writableOrders, setWritableOrders] = useState([])
+  const [selectedOrder, setSelectedOrder] = useState(null)
+
+  // 리뷰 목록 로드
+  const fetchReviews = useCallback(async (pageNum = 1, sortType = sort) => {
+    try {
+      setLoading(true)
+      const response = await api.get(`/reviews/product/${productId}?page=${pageNum}&limit=10&sort=${sortType}`)
+      const data = response.data.data
+      
+      if (pageNum === 1) {
+        setReviews(data.reviews)
+      } else {
+        setReviews(prev => [...prev, ...data.reviews])
+      }
+      setStats(data.stats)
+      setHasMore(data.pagination.hasMore)
+      setPage(pageNum)
+    } catch (error) {
+      console.error('리뷰 로딩 실패:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [productId, sort])
+
+  // 리뷰 작성 가능한 주문 확인
+  const checkWritableOrders = useCallback(async () => {
+    if (!isAuthenticated) return
+    try {
+      const response = await api.get('/reviews/writable')
+      const writable = response.data.data.filter(item => item.productId.toString() === productId)
+      setWritableOrders(writable)
+    } catch (error) {
+      console.error('작성 가능 리뷰 확인 실패:', error)
+    }
+  }, [isAuthenticated, productId])
+
+  useEffect(() => {
+    fetchReviews(1, sort)
+    checkWritableOrders()
+  }, [fetchReviews, checkWritableOrders, sort])
+
+  // 정렬 변경
+  const handleSortChange = (newSort) => {
+    setSort(newSort)
+    fetchReviews(1, newSort)
+  }
+
+  // 더 보기
+  const handleLoadMore = () => {
+    fetchReviews(page + 1, sort)
+  }
+
+  // 리뷰 작성
+  const handleSubmitReview = async (reviewData) => {
+    try {
+      await api.post('/reviews', reviewData)
+      alert('리뷰가 등록되었습니다!')
+      setShowWriteForm(false)
+      setSelectedOrder(null)
+      fetchReviews(1, sort)
+      checkWritableOrders()
+    } catch (error) {
+      alert(error.response?.data?.message || '리뷰 등록에 실패했습니다.')
+    }
+  }
+
+  // 도움됨 토글
+  const handleHelpful = async (reviewId) => {
+    if (!isAuthenticated) {
+      alert('로그인이 필요합니다.')
+      return
+    }
+    try {
+      await api.post(`/reviews/${reviewId}/helpful`)
+      fetchReviews(page, sort)
+    } catch (error) {
+      alert(error.response?.data?.message || '처리에 실패했습니다.')
+    }
+  }
+
+  // 리뷰 삭제
+  const handleDelete = async (reviewId) => {
+    if (!window.confirm('리뷰를 삭제하시겠습니까?')) return
+    try {
+      await api.delete(`/reviews/${reviewId}`)
+      alert('리뷰가 삭제되었습니다.')
+      fetchReviews(1, sort)
+      checkWritableOrders()
+    } catch (error) {
+      alert(error.response?.data?.message || '삭제에 실패했습니다.')
+    }
+  }
+
+  // 평점 분포 계산
+  const ratingBars = useMemo(() => {
+    if (!stats?.ratingCounts) return []
+    const total = stats.totalReviews || 1
+    return [5, 4, 3, 2, 1].map(rating => ({
+      rating,
+      count: stats.ratingCounts[rating] || 0,
+      percentage: ((stats.ratingCounts[rating] || 0) / total) * 100
+    }))
+  }, [stats])
+
+  return (
+    <div className="review-section-v2">
+      {/* 리뷰 요약 */}
+      <div className="review-summary-v2">
+        <div className="summary-left">
+          <div className="average-rating">
+            <span className="rating-number">{stats?.averageRating || 0}</span>
+            <StarRating rating={stats?.averageRating || 0} size={20} />
+          </div>
+          <span className="total-reviews">{stats?.totalReviews || 0}개의 리뷰</span>
+        </div>
+        <div className="summary-right">
+          <div className="rating-bars">
+            {ratingBars.map(({ rating, count, percentage }) => (
+              <div key={rating} className="rating-bar-row">
+                <span className="bar-label">{rating}점</span>
+                <div className="bar-track">
+                  <div className="bar-fill" style={{ width: `${percentage}%` }} />
+                </div>
+                <span className="bar-count">{count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 리뷰 작성 버튼 */}
+      {isAuthenticated && writableOrders.length > 0 && !showWriteForm && (
+        <div className="write-review-section">
+          <p className="write-prompt">이 상품을 구매하셨나요?</p>
+          <div className="writable-orders">
+            {writableOrders.map(order => (
+              <button
+                key={`${order.orderId}-${order.productId}`}
+                className="btn-write-review"
+                onClick={() => {
+                  setSelectedOrder(order)
+                  setShowWriteForm(true)
+                }}
+              >
+                리뷰 작성하기 ({order.orderNumber})
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 리뷰 작성 폼 */}
+      {showWriteForm && selectedOrder && (
+        <ReviewForm
+          productId={selectedOrder.productId}
+          orderId={selectedOrder.orderId}
+          onSubmit={handleSubmitReview}
+          onCancel={() => {
+            setShowWriteForm(false)
+            setSelectedOrder(null)
+          }}
+        />
+      )}
+
+      {/* 정렬 옵션 */}
+      {reviews.length > 0 && (
+        <div className="review-sort">
+          <button 
+            className={sort === 'newest' ? 'active' : ''}
+            onClick={() => handleSortChange('newest')}
+          >
+            최신순
+          </button>
+          <button 
+            className={sort === 'highest' ? 'active' : ''}
+            onClick={() => handleSortChange('highest')}
+          >
+            높은 평점순
+          </button>
+          <button 
+            className={sort === 'lowest' ? 'active' : ''}
+            onClick={() => handleSortChange('lowest')}
+          >
+            낮은 평점순
+          </button>
+          <button 
+            className={sort === 'helpful' ? 'active' : ''}
+            onClick={() => handleSortChange('helpful')}
+          >
+            도움순
+          </button>
+        </div>
+      )}
+
+      {/* 리뷰 목록 */}
+      <div className="review-list">
+        {loading && reviews.length === 0 ? (
+          <p className="loading-text">리뷰를 불러오는 중...</p>
+        ) : reviews.length === 0 ? (
+          <p className="no-content">아직 작성된 리뷰가 없습니다.</p>
+        ) : (
+          <>
+            {reviews.map(review => (
+              <ReviewItem
+                key={review._id}
+                review={review}
+                currentUserId={user?._id}
+                onHelpful={handleHelpful}
+                onDelete={handleDelete}
+              />
+            ))}
+            {hasMore && (
+              <button className="btn-load-more" onClick={handleLoadMore}>
+                더보기
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+})
+
 // 탭 컴포넌트
 const ProductTabs = memo(({ activeTab, onTabChange, product }) => {
   const tabs = [
@@ -227,12 +637,7 @@ const ProductTabs = memo(({ activeTab, onTabChange, product }) => {
         )}
         {activeTab === 'review' && (
           <div className="tab-panel">
-            <div className="review-section">
-              <div className="review-summary">
-                <span className="review-count">리뷰 0개</span>
-              </div>
-              <p className="no-content">아직 작성된 리뷰가 없습니다.</p>
-            </div>
+            <ReviewSection productId={product._id} />
           </div>
         )}
         {activeTab === 'qna' && (
@@ -349,7 +754,7 @@ function ProductDetail() {
     }
   }, [isAuthenticated, productId, quantity, addToCart, navigate])
 
-  // 바로 구매
+  // 바로 구매 - 장바구니에 추가 후 해당 상품만 선택하여 결제 페이지로 이동
   const handleBuyNow = useCallback(async () => {
     if (!isAuthenticated) {
       if (window.confirm('로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?')) {
@@ -361,7 +766,8 @@ function ProductDetail() {
     setIsAddingToCart(true)
     try {
       await addToCart(productId, quantity)
-      navigate('/cart')
+      // 바로 결제 페이지로 이동 (해당 상품만 선택)
+      navigate('/checkout', { state: { selectedItems: [productId] } })
     } catch (error) {
       alert(error.message)
     } finally {

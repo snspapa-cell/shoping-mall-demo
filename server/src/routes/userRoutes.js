@@ -6,7 +6,15 @@ const {
   createUser,
   updateUser,
   deleteUser,
+  getUserStats,
 } = require('../controllers/userController');
+const { protect, adminOnly } = require('../middleware/authMiddleware');
+
+// 모든 라우트에 관리자 권한 필요
+router.use(protect, adminOnly);
+
+// GET    /api/users/stats - 회원 통계
+router.get('/stats', getUserStats);
 
 // GET    /api/users     - 모든 유저 조회
 // POST   /api/users     - 유저 생성

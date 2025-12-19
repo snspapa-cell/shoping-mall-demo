@@ -3,7 +3,9 @@ import {
   ProductIcon, 
   OrderIcon, 
   UserIcon, 
-  SettingsIcon 
+  SettingsIcon,
+  BannerIcon,
+  LookbookIcon
 } from '../components/icons/AdminIcons'
 
 // 카테고리 목록
@@ -15,6 +17,8 @@ export const CATEGORIES = [
 // 메뉴 항목
 export const MENU_ITEMS = [
   { id: 'dashboard', label: '대시보드', icon: DashboardIcon },
+  { id: 'banners', label: '배너 관리', icon: BannerIcon },
+  { id: 'lookbooks', label: '룩북 관리', icon: LookbookIcon },
   { id: 'products', label: '상품 관리', icon: ProductIcon },
   { id: 'orders', label: '주문 관리', icon: OrderIcon },
   { id: 'users', label: '회원 관리', icon: UserIcon },
@@ -24,11 +28,22 @@ export const MENU_ITEMS = [
 // 페이지 타이틀 정보
 export const PAGE_TITLES = {
   dashboard: { title: '대시보드', subtitle: '성찬몰 관리자 페이지에 오신 것을 환영합니다' },
+  banners: { title: '배너 관리', subtitle: '메인 배너 및 이벤트/광고 배너를 관리할 수 있습니다' },
+  lookbooks: { title: '룩북 관리', subtitle: '룩북 슬라이더의 이미지 및 동영상을 관리할 수 있습니다' },
   products: { title: '상품 관리', subtitle: '상품을 등록, 수정, 삭제할 수 있습니다' },
   orders: { title: '주문 관리', subtitle: '주문 현황을 확인하고 처리할 수 있습니다' },
   users: { title: '회원 관리', subtitle: '회원 정보를 조회하고 관리할 수 있습니다' },
   settings: { title: '설정', subtitle: '사이트 설정을 변경할 수 있습니다' },
 }
+
+// 배너 타입 옵션
+export const BANNER_TYPES = [
+  { value: 'event', label: '이벤트' },
+  { value: 'promotion', label: '프로모션' },
+  { value: 'advertisement', label: '광고' },
+  { value: 'season', label: '시즌' },
+  { value: 'new_arrival', label: '신상품' },
+]
 
 // 대시보드 통계 데이터 (실제로는 API에서 가져와야 함)
 export const MOCK_STATS = [
@@ -60,4 +75,5 @@ export const MOCK_BEST_PRODUCTS = [
 export const formatPrice = (price) => {
   return new Intl.NumberFormat('ko-KR').format(price)
 }
+
 

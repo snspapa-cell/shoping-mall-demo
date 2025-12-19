@@ -1,4 +1,4 @@
-import { useState, useCallback, memo, useMemo } from 'react'
+import { useState, useCallback, memo, useMemo, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import { useCart } from '../hooks/useCart'
@@ -96,8 +96,15 @@ const LoginRequired = memo(() => (
 function Cart() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
-  const { cart, loading, updateQuantity, removeFromCart, removeSelectedItems, clearCart } = useCart()
+  const { cart, loading, fetchCart, updateQuantity, removeFromCart, removeSelectedItems, clearCart } = useCart()
   const [selectedItems, setSelectedItems] = useState([])
+
+  // 페이지 마운트 시 장바구니 새로고침
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchCart()
+    }
+  }, [isAuthenticated, fetchCart])
 
   // 전체 선택 여부
   const allSelected = useMemo(() => {
@@ -184,8 +191,8 @@ function Cart() {
       alert('주문할 상품을 선택해주세요.')
       return
     }
-    alert('주문 페이지로 이동합니다. (준비 중)')
-  }, [selectedItems])
+    navigate('/checkout', { state: { selectedItems } })
+  }, [selectedItems, navigate])
 
   // 로그인 필요
   if (!isAuthenticated) {
@@ -251,21 +258,20 @@ function Cart() {
             {/* 주문 요약 */}
             <div className="cart-summary">
               <div className="summary-row">
-                <span>상품 금액</span>
-                <span>₩{formatPrice(cart.totalAmount)}</span>
+                <span>선택 상품 금액 ({selectedItems.length}개)</span>
+                <span>₩{formatPrice(selectedTotal)}</span>
               </div>
               <div className="summary-row">
                 <span>배송비</span>
-                <span>{cart.totalAmount >= 50000 ? '무료' : '₩3,000'}</span>
+                <span>{selectedTotal >= 50000 ? '무료' : selectedTotal > 0 ? '₩3,000' : '-'}</span>
               </div>
               <div className="summary-row total">
                 <span>결제 예정 금액</span>
-                <span>₩{formatPrice(cart.totalAmount + (cart.totalAmount >= 50000 ? 0 : 3000))}</span>
+                <span>₩{formatPrice(selectedTotal > 0 ? selectedTotal + (selectedTotal >= 50000 ? 0 : 3000) : 0)}</span>
               </div>
-              {selectedItems.length > 0 && (
-                <div className="summary-selected">
-                  <span>선택 상품 ({selectedItems.length}개)</span>
-                  <span>₩{formatPrice(selectedTotal)}</span>
+              {selectedItems.length === 0 && cart.items.length > 0 && (
+                <div className="summary-notice">
+                  <span>상품을 선택해주세요</span>
                 </div>
               )}
             </div>
@@ -306,4 +312,5 @@ function Cart() {
 }
 
 export default memo(Cart)
+
 

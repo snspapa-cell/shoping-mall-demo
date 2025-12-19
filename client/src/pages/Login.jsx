@@ -60,6 +60,7 @@ function Login() {
     <div className="login-page">
       <div className="login-container">
         <div className="login-header">
+          <Link to="/" className="login-logo">성찬몰</Link>
           <h1>로그인</h1>
           <p>성찬 쇼핑몰에 오신 것을 환영합니다</p>
         </div>

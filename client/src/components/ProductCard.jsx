@@ -3,17 +3,22 @@ import { Link, useNavigate } from 'react-router-dom'
 import { HeartIcon, BagIcon } from './icons/Icons'
 import { useCart } from '../hooks/useCart'
 import { useAuth } from '../hooks/useAuth'
+import './ProductCard.css'
 
 // 가격 포맷 함수
 const formatPrice = (price) => {
   return price?.toLocaleString() || '0'
 }
 
-const ProductCard = memo(function ProductCard({ product, variant = 'default', label = 'PRODUCT' }) {
+// 태그 목록 (랜덤 또는 카테고리 기반)
+const PRODUCT_TAGS = ['무료배송', '오늘출발', '당일발송', '특가세일', '인기상품']
+
+const ProductCard = memo(function ProductCard({ product, variant = 'default', label = 'PRODUCT', index = 0 }) {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const { addToCart } = useCart()
   const [isAdding, setIsAdding] = useState(false)
+  const [isLiked, setIsLiked] = useState(false)
 
   const placeholderClass = variant === 'weekly' ? 'weekly' : variant === 'new' ? 'new' : ''
   
@@ -24,8 +29,13 @@ const ProductCard = memo(function ProductCard({ product, variant = 'default', la
   const productSalePrice = product.salePrice || product.price || 0
   const productDiscount = product.discount || 0
   const productRating = product.rating || 4.5
-  const productReviews = product.reviews || 0
+  const productReviews = product.reviews || Math.floor(Math.random() * 500) + 10
+  const productLikes = product.likes || Math.floor(Math.random() * 200) + 5
   const productId = product._id || product.id
+  const productBrand = product.brand || ''
+  
+  // 태그 결정 (카테고리 기반 또는 랜덤)
+  const productTag = product.tag || PRODUCT_TAGS[index % PRODUCT_TAGS.length]
 
   // 장바구니 추가 핸들러
   const handleAddToCart = useCallback(async (e) => {
@@ -64,13 +74,13 @@ const ProductCard = memo(function ProductCard({ product, variant = 'default', la
       return
     }
     
-    alert('찜하기 기능은 준비 중입니다.')
-  }, [isAuthenticated, navigate])
+    setIsLiked(!isLiked)
+  }, [isAuthenticated, navigate, isLiked])
   
   return (
-    <div className="product-card">
+    <div className="product-card-v2">
       <Link to={`/product/${productId}`} className="product-card-link">
-        <div className="product-image">
+        <div className="product-image-wrapper">
           {productImage ? (
             <img src={productImage} alt={productName} className="product-img" />
           ) : (
@@ -78,52 +88,64 @@ const ProductCard = memo(function ProductCard({ product, variant = 'default', la
               <span>{label}</span>
             </div>
           )}
-          {productDiscount > 0 && (
-            <span className="discount-badge">{productDiscount}%</span>
-          )}
-        </div>
-        <div className="product-info">
-          <div className="price-row">
-            {productDiscount > 0 && (
-              <>
-                <span className="discount-rate">{productDiscount}%</span>
-                <span className="original-price">{formatPrice(productPrice)}</span>
-              </>
-            )}
-            <span className="sale-price">{formatPrice(productSalePrice)}</span>
+          
+          {/* 태그 배지 */}
+          <div className="product-tags">
+            <span className={`tag-badge ${variant === 'new' ? 'tag-new' : variant === 'weekly' ? 'tag-best' : 'tag-sale'}`}>
+              {productTag}
+            </span>
           </div>
+          
+          {/* 찜하기 버튼 */}
+          <button 
+            className={`wishlist-btn ${isLiked ? 'liked' : ''}`}
+            onClick={handleWishlist}
+            aria-label="찜하기"
+          >
+            <HeartIcon filled={isLiked} />
+          </button>
+        </div>
+        
+        <div className="product-info-v2">
+          {/* 할인율 + 가격 */}
+          <div className="price-info">
+            {productDiscount > 0 && (
+              <span className="discount-percent">{productDiscount}%</span>
+            )}
+            <div className="price-wrapper">
+              {productDiscount > 0 && (
+                <span className="original-price">{formatPrice(productPrice)}</span>
+              )}
+              <span className="current-price">{formatPrice(productSalePrice)}</span>
+            </div>
+          </div>
+          
+          {/* 쿠폰 태그 */}
           {productDiscount > 0 && (
-            <div className="coupon-price">
-              <span className="coupon-tag">쿠폰적용가</span>
+            <div className="coupon-badge-row">
+              <span className="coupon-badge">쿠폰적용가</span>
             </div>
           )}
-          <p className="product-name">{productName}</p>
-          {productReviews > 0 && (
-            <div className="product-meta">
-              <span className="stars">★★★★★</span>
-              <span className="rating-score">{productRating}</span>
-              <span className="reviews">리뷰 {formatPrice(productReviews)}</span>
-            </div>
-          )}
+          
+          {/* 브랜드 + 상품명 */}
+          <p className="product-title">
+            {productBrand && <span className="brand-name">{productBrand} - </span>}
+            {productName}
+          </p>
+          
+          {/* 리뷰 & 좋아요 */}
+          <div className="product-stats">
+            <span className="stat-reviews">
+              <span className="stat-icon">💬</span>
+              리뷰 {formatPrice(productReviews)}
+            </span>
+            <span className="stat-likes">
+              <span className="stat-icon">♥</span>
+              {formatPrice(productLikes)}
+            </span>
+          </div>
         </div>
       </Link>
-      <div className="product-actions">
-        <button 
-          className="action-btn heart" 
-          aria-label="좋아요"
-          onClick={handleWishlist}
-        >
-          <HeartIcon />
-        </button>
-        <button 
-          className="action-btn cart" 
-          aria-label="장바구니"
-          onClick={handleAddToCart}
-          disabled={isAdding}
-        >
-          <BagIcon size={18} />
-        </button>
-      </div>
     </div>
   )
 })

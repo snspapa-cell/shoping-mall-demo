@@ -1,20 +1,103 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 
-// @desc    모든 유저 조회
+// @desc    모든 유저 조회 (페이지네이션, 검색)
 // @route   GET /api/users
 const getUsers = async (req, res) => {
   try {
-    const users = await User.find().select('-password');
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+    const { search, user_type, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
+
+    // 검색 쿼리 구성
+    const query = {};
+
+    if (search) {
+      query.$or = [
+        { email: new RegExp(search, 'i') },
+        { username: new RegExp(search, 'i') },
+      ];
+    }
+
+    if (user_type) {
+      query.user_type = user_type;
+    }
+
+    // 정렬 설정
+    const sort = {};
+    sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+    const [users, total] = await Promise.all([
+      User.find(query)
+        .select('-password')
+        .sort(sort)
+        .skip(skip)
+        .limit(limit),
+      User.countDocuments(query),
+    ]);
+
     res.json({
       success: true,
-      count: users.length,
       data: users,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: '유저 목록 조회 실패',
+      error: error.message,
+    });
+  }
+};
+
+// @desc    회원 통계
+// @route   GET /api/users/stats
+const getUserStats = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+
+    const [
+      totalUsers,
+      todayUsers,
+      thisMonthUsers,
+      lastMonthUsers,
+      adminCount,
+      customerCount,
+    ] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ createdAt: { $gte: today } }),
+      User.countDocuments({ createdAt: { $gte: thisMonth } }),
+      User.countDocuments({ createdAt: { $gte: lastMonth, $lte: lastMonthEnd } }),
+      User.countDocuments({ user_type: 'admin' }),
+      User.countDocuments({ user_type: 'customer' }),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        totalUsers,
+        todayUsers,
+        thisMonthUsers,
+        lastMonthUsers,
+        adminCount,
+        customerCount,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '회원 통계 조회 실패',
       error: error.message,
     });
   }
@@ -182,4 +265,5 @@ module.exports = {
   createUser,
   updateUser,
   deleteUser,
+  getUserStats,
 };

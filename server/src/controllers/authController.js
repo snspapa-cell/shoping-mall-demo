@@ -94,9 +94,71 @@ const getMe = async (req, res) => {
   }
 };
 
+// @desc    비밀번호 변경
+// @route   PUT /api/auth/password
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    // 입력 확인
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: '현재 비밀번호와 새 비밀번호를 모두 입력해주세요.',
+      });
+    }
+
+    // 새 비밀번호 길이 확인
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: '새 비밀번호는 최소 6자 이상이어야 합니다.',
+      });
+    }
+
+    // 현재 유저 조회
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: '유저를 찾을 수 없습니다.',
+      });
+    }
+
+    // 현재 비밀번호 검증
+    const isPasswordMatch = await bcrypt.compare(currentPassword, user.password);
+
+    if (!isPasswordMatch) {
+      return res.status(401).json({
+        success: false,
+        message: '현재 비밀번호가 올바르지 않습니다.',
+      });
+    }
+
+    // 새 비밀번호 해싱 및 저장
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    res.json({
+      success: true,
+      message: '비밀번호가 성공적으로 변경되었습니다.',
+    });
+  } catch (error) {
+    console.error('비밀번호 변경 에러:', error);
+    res.status(500).json({
+      success: false,
+      message: '비밀번호 변경 중 오류가 발생했습니다.',
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   login,
   getMe,
+  changePassword,
   generateToken,
 };
 

@@ -11,7 +11,12 @@ router.use('/auth', require('./authRoutes'));
 router.use('/users', require('./userRoutes'));
 router.use('/products', require('./productRoutes'));
 router.use('/cart', require('./cartRoutes'));
-// router.use('/orders', require('./orderRoutes'));
+router.use('/orders', require('./orderRoutes'));
+router.use('/banners', require('./bannerRoutes'));
+router.use('/lookbooks', require('./lookbookRoutes'));
+router.use('/shipping-addresses', require('./shippingAddressRoutes'));
+router.use('/dashboard', require('./dashboardRoutes'));
+router.use('/reviews', require('./reviewRoutes'));
 
 module.exports = router;
 
