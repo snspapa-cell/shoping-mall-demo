@@ -249,23 +249,31 @@ function Home() {
             {banners.map((banner, index) => (
               <div 
                 key={banner._id || index}
-                className={`slider-slide ${index === currentSlide ? 'active' : ''} ${banner.link ? 'clickable' : ''}`}
+                className={`slider-slide ${index === currentSlide ? 'active' : ''} ${banner.link ? 'clickable' : ''} ${banner.image ? 'has-image' : ''}`}
                 style={{ 
                   backgroundColor: banner.backgroundColor || '#f0f5e6',
                   color: banner.textColor || '#1a1a1a',
-                  backgroundImage: banner.image ? `url(${banner.image})` : 'none',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
                 }}
                 onClick={() => handleBannerClick(banner)}
               >
-                <div className="slider-content">
-                  <h1>{banner.title}</h1>
-                  {banner.subtitle && <h2>{banner.subtitle}</h2>}
-                  {banner.buttonText && (
-                    <button className="banner-btn">{banner.buttonText}</button>
-                  )}
-                </div>
+                {/* 배너 이미지 - 원본 비율 유지 */}
+                {banner.image && (
+                  <img 
+                    src={banner.image} 
+                    alt={banner.title || '배너 이미지'} 
+                    className="banner-image"
+                  />
+                )}
+                {/* 텍스트 콘텐츠 - 이미지 위에 오버레이 또는 이미지 없을 때 표시 */}
+                {(!banner.image || banner.title || banner.subtitle) && (
+                  <div className="slider-content">
+                    {banner.title && <h1>{banner.title}</h1>}
+                    {banner.subtitle && <h2>{banner.subtitle}</h2>}
+                    {banner.buttonText && (
+                      <button className="banner-btn">{banner.buttonText}</button>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
             
