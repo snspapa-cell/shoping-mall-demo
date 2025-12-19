@@ -5,6 +5,10 @@ import axios from 'axios';
 // 배포환경: 환경변수에서 서버 URL 가져오기
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
+// 디버깅: 환경변수 확인 (배포 후 콘솔에서 확인)
+console.log('[API Config] VITE_API_URL:', import.meta.env.VITE_API_URL);
+console.log('[API Config] Using API_BASE_URL:', API_BASE_URL);
+
 // Axios 인스턴스 생성
 const api = axios.create({
   baseURL: API_BASE_URL,
