@@ -55,11 +55,10 @@ const register = async (req, res) => {
 
     // 유저 생성
     const user = await User.create({
-      name,
+      username: name, // User 모델은 username 필드 사용
       email: email.toLowerCase(),
       password: hashedPassword,
-      role: 'customer', // 일반 회원으로 가입
-      agreeMarketing: agreeMarketing || false,
+      user_type: 'customer', // 일반 회원으로 가입
     });
 
     // JWT 토큰 생성
